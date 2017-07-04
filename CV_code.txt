@@ -1,0 +1,22 @@
+In this case, if there is no Pthread_cond_wait(), then
+it is possible that this program will be dead lock.
+Since Pthread_cond_wait() release the signal, if not,
+then when producer called, and it's full, then since
+it gets the lock, consumer part won't get the lock mutex,
+this would be a disaster.
+
+If there is no count in the code, then initially code
+won't run. Even though producer and consumer run at the same time,
+they are expected each other to send the signal, which
+has a bug.
+
+If there is none of them, and we simply put the 
+pthread_mutex_lock below while loop, then if there are
+2 producers, once count is not MAX, then they both want
+to accuqire the lock, it is possible that P2 overwrite
+P1 produced content before some consumer read the buffer
+
+If there is no mutex_lock(), then it will cause race 
+condition. If producer find count == MAX, it  prepare
+to call wait, but just before this, the consumer simply
+finish its job and signal, then it might wait forever.
